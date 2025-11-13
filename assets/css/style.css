@@ -72,6 +72,14 @@ img {
   text-align: center;
 }
 
+.weather-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: fit-content;
+  padding: 10px 0;
+}
+
 #movies-output {
   display: flex;
   flex-wrap: wrap;

@@ -127,23 +127,52 @@ async function getWeather() {
 // Currency API
 
 async function getExchangeRates() {
-  const fromRate = document.getElementById("fromRate").value.trim();
-  const toRate = document.getElementById("toRate").value.trim();
-  const rateAmount = document.getElementById("rateAmount").value.trim();
+  const fromInput = document
+    .getElementById("fromRate")
+    .value.trim()
+    .toUpperCase();
+  const toInput = document.getElementById("toRate").value.trim().toUpperCase();
+  const amountInput = document.getElementById("rateAmount").value.trim();
 
-  function convert(from, to, amount) {
-    currencyContainer.innerHTML = ``;
-    fetch(`https://api.frankfurter.dev/v1/latest?base=${from}&symbols=${to}`)
-      .then((resp) => resp.json())
-      .then((data) => {
-        const convertedAmount = (amount * data.rates[to]).toFixed(2);
-        currencyContainer.innerHTML = `<p>Loading Currency Results...</p>`;
+  const amount = parseFloat(amountInput);
 
-        currencyContainer.innerHTML = `${amount} ${from} = ${convertedAmount} ${to}`;
-      });
+  if (!fromInput || !toInput || isNaN(amount)) {
+    currencyContainer.innerHTML =
+      "<p>Please enter valid currency codes and a numeric amount.</p>";
+    return;
   }
 
-  convert(fromRate, toRate, rateAmount);
+  currencyContainer.innerHTML = "<p>Loading Currency Results...</p>";
+
+  try {
+    const resp = await fetch(
+      `https://api.frankfurter.app/latest?base=${fromInput}&symbols=${toInput}`
+    );
+
+    if (!resp.ok) {
+      throw new Error("Network response was not ok");
+    }
+
+    const data = await resp.json();
+
+    const rate = data.rates[toInput];
+
+    if (!rate) {
+      currencyContainer.innerHTML =
+        "<p>Could not find rate for those currency codes.</p>";
+      return;
+    }
+
+    const convertedAmount = (amount * rate).toFixed(2);
+
+    currencyContainer.innerHTML = `
+      ${amount} ${fromInput} = ${convertedAmount} ${toInput}
+    `;
+  } catch (err) {
+    console.error("Error fetching exchange rate:", err);
+    currencyContainer.innerHTML =
+      "<p>There was an error fetching the exchange rate.</p>";
+  }
 }
 
 // MOVIE API
@@ -273,7 +302,7 @@ async function getPublicApiInfo() {
   }
 
   const query = document.getElementById("apiSearch").value.toLowerCase();
-  pubicApiContainer.innerHTML = "Searching...";
+  pubicApiContainer.innerHTML = `<p>Searching...</p>`;
 
   const apis = await loadPublicApis();
 
